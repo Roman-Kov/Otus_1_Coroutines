@@ -3,7 +3,8 @@ package otus.homework.coroutines
 import kotlinx.coroutines.*
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val catsImageService: CatsImageService
 ) {
 
     private var _catsView: ICatsView? = null
@@ -12,11 +13,21 @@ class CatsPresenter(
     fun onInitComplete() = presenterScope.launch {
         try {
             coroutineScope {
-                catsService.getCatFact().let { response ->
-                    if (response.isSuccessful && response.body() != null) {
-                        _catsView?.populate(response.body()!!)
-                    }
+                val fact = async {
+                    catsService.getCatFact().takeIf { response ->
+                        response.isSuccessful && response.body() != null
+                    }?.body()
                 }
+                val catsImageUrl = async {
+                    catsImageService.getCatImage().url
+                }
+
+                _catsView?.populate(
+                    CatsViewData(
+                        fact.await()?.text,
+                        catsImageUrl.await()
+                    )
+                )
             }
         } catch (e: Throwable) {
             if (e is java.net.SocketTimeoutException) {

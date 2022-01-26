@@ -5,7 +5,9 @@ import android.util.AttributeSet
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.squareup.picasso.Picasso
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -22,8 +24,14 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
+    override fun populate(viewData: CatsViewData) {
+        findViewById<TextView>(R.id.fact_textView).text = viewData.fact ?: "No facts"
+        findViewById<AppCompatImageView>(R.id.cat_imageView)?.let { imageView ->
+            Picasso.get()
+                .load(viewData.imageUrl)
+                .placeholder(R.drawable.ic_launcher_foreground)
+                .into(imageView)
+        }
     }
 
     override fun showServerError(isServerError: Boolean, errorMessage: String) {
@@ -34,6 +42,6 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
+    fun populate(viewData: CatsViewData)
     fun showServerError(isServerError: Boolean, errorMessage: String)
 }
