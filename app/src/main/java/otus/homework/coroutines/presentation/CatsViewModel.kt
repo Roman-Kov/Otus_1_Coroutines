@@ -8,6 +8,7 @@ import kotlinx.coroutines.*
 import otus.homework.coroutines.data.CatsImageService
 import otus.homework.coroutines.data.CatsService
 import otus.homework.coroutines.domain.AppResult
+import otus.homework.coroutines.domain.CrashMonitor
 
 class CatsViewModel(
     private val catsService: CatsService,
@@ -16,7 +17,10 @@ class CatsViewModel(
 
     private val _catsLiveData = MutableLiveData<AppResult<CatsViewData>>(AppResult.Empty)
     private val catsLiveData: LiveData<AppResult<CatsViewData>> = _catsLiveData
-    private val catsContext = CoroutineName("CatsCoroutine") + Dispatchers.IO
+    private val coroutineExceptionHandler = CoroutineExceptionHandler{ _, e ->
+        CrashMonitor.trackWarning(e)
+    }
+    private val catsContext = CoroutineName("CatsCoroutine") + Dispatchers.IO + coroutineExceptionHandler
 
     fun getData() = viewModelScope.launch(catsContext) {
         try {
