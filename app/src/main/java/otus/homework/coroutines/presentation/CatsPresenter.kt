@@ -1,6 +1,9 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation
 
 import kotlinx.coroutines.*
+import otus.homework.coroutines.data.CatsImageService
+import otus.homework.coroutines.data.CatsService
+import otus.homework.coroutines.domain.CrashMonitor
 
 class CatsPresenter(
     private val catsService: CatsService,

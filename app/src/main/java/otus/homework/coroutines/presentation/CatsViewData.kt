@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation
 
 data class CatsViewData(
     val fact: String?,
