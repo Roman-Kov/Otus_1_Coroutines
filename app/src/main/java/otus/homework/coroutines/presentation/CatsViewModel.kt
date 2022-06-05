@@ -16,20 +16,18 @@ class CatsViewModel(
 ) : ViewModel() {
 
     private val _catsLiveData = MutableLiveData<AppResult<CatsViewData>>(AppResult.Empty)
-    private val catsLiveData: LiveData<AppResult<CatsViewData>> = _catsLiveData
+    val catsLiveData: LiveData<AppResult<CatsViewData>> = _catsLiveData
     private val coroutineExceptionHandler = CoroutineExceptionHandler{ _, e ->
         CrashMonitor.trackWarning(e)
     }
-    private val catsContext = CoroutineName("CatsCoroutine") + Dispatchers.IO + coroutineExceptionHandler
+    private val catsContext = CoroutineName("CatsCoroutine") + coroutineExceptionHandler
 
     fun getData() = viewModelScope.launch(catsContext) {
         try {
             _catsLiveData.postValue(AppResult.Loading)
             coroutineScope {
                 val fact = async {
-                    catsService.getCatFact().takeIf { response ->
-                        response.isSuccessful && response.body() != null
-                    }?.body()
+                    catsService.getCatFact()
                 }
                 val catsImageUrl = async {
                     catsImageService.getCatImage().url
@@ -38,12 +36,14 @@ class CatsViewModel(
                 _catsLiveData.postValue(
                     AppResult.Success(
                         CatsViewData(
-                            fact.await()?.text,
+                            fact.await().text,
                             catsImageUrl.await()
                         )
                     )
                 )
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Throwable) {
             _catsLiveData.postValue(AppResult.Failure(e))
         }

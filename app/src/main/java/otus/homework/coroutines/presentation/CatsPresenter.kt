@@ -17,9 +17,7 @@ class CatsPresenter(
         try {
             coroutineScope {
                 val fact = async {
-                    catsService.getCatFact().takeIf { response ->
-                        response.isSuccessful && response.body() != null
-                    }?.body()
+                    catsService.getCatFact()
                 }
                 val catsImageUrl = async {
                     catsImageService.getCatImage().url
@@ -27,18 +25,22 @@ class CatsPresenter(
 
                 _catsView?.populate(
                     CatsViewData(
-                        fact.await()?.text,
+                        fact.await().text,
                         catsImageUrl.await()
                     )
                 )
             }
         } catch (e: Throwable) {
-            if (e is java.net.SocketTimeoutException) {
-                _catsView?.showServerError(true, e.message.orEmpty())
-            } else {
-                _catsView?.showServerError(false, e.message.orEmpty())
-                CrashMonitor.trackWarning()
-            }
+            handleError(e)
+        }
+    }
+
+    private fun handleError(e: Throwable) = when (e) {
+        is CancellationException -> throw e
+        is java.net.SocketTimeoutException -> _catsView?.showServerError(true, e.message.orEmpty())
+        else -> {
+            _catsView?.showServerError(false, e.message.orEmpty())
+            CrashMonitor.trackWarning()
         }
     }
 
