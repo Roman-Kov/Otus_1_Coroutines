@@ -1,10 +1,10 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.domain
 
 object CrashMonitor {
 
     /**
      * Pretend this is Crashlytics/AppCenter
      */
-    fun trackWarning() {
+    fun trackWarning(e: Throwable? = null) {
     }
 }
